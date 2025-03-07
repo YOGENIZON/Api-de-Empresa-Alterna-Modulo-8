@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\yogen\\Desktop\\empresa2\\Empresa01\\Empresa01.csproj": {}
+    "C:\\Users\\yogen\\Desktop\\empresa2\\empresa01\\Empresa01.csproj": {}
   },
   "projects": {
-    "C:\\Users\\yogen\\Desktop\\empresa2\\Empresa01\\Empresa01.csproj": {
+    "C:\\Users\\yogen\\Desktop\\empresa2\\empresa01\\Empresa01.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\yogen\\Desktop\\empresa2\\Empresa01\\Empresa01.csproj",
+        "projectUniqueName": "C:\\Users\\yogen\\Desktop\\empresa2\\empresa01\\Empresa01.csproj",
         "projectName": "Empresa01",
-        "projectPath": "C:\\Users\\yogen\\Desktop\\empresa2\\Empresa01\\Empresa01.csproj",
+        "projectPath": "C:\\Users\\yogen\\Desktop\\empresa2\\empresa01\\Empresa01.csproj",
         "packagesPath": "C:\\Users\\yogen\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\yogen\\Desktop\\empresa2\\Empresa01\\obj\\",
+        "outputPath": "C:\\Users\\yogen\\Desktop\\empresa2\\empresa01\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\yogen\\AppData\\Roaming\\NuGet\\NuGet.Config"

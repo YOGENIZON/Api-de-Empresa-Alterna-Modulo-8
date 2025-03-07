@@ -7,7 +7,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c => {
     c.SwaggerDoc("v1", new OpenApiInfo {
         Title = "Como tu quieras que se llame",
-        Description = "Sistema para administrar los palomos de la empresa"
+        Description = "Sistema para administrar los palomos de las empresas"
     });
 });
 
@@ -140,6 +140,7 @@ Almacenamiento.Empleados = new List<Empleado>
 
 
 //Para las companias
+
 app.MapGet("/api/companias", () => 
 {
     app.Use(async (context, next) => {
@@ -153,6 +154,7 @@ app.MapGet("/api/companias", () =>
 
 
 //Las companias por id
+
 app.MapGet("/api/companias/{id}", (int id) => 
 {
     var Compania = Almacenamiento.Companias.FirstOrDefault(c => c.Id == id);
@@ -237,7 +239,6 @@ app.MapPost("/api/empleados", (Empleado empleado) =>
     empleado.Id = Almacenamiento.UltimoIdEmpleado + 1;
     empleado.FechaContratacion = DateTime.Now;
 if(string.IsNullOrWhiteSpace(empleado.Cargo)){
-    empleado.Cargo = Almacenamiento.ObtenerCargoAleatorio();
 }
 
     Almacenamiento.Empleados.Add(empleado);
@@ -351,7 +352,7 @@ public static class Almacenamiento
     public static List<Empleado> Empleados = new();
     public static List<EmpleadoDespedido> EmpleadosDespedidos = new();
 
-   public static int UltimoIdCompania => Companias.Any() ? Companias.Max(c => c.Id) : 0;
+    public static int UltimoIdCompania => Companias.Any() ? Companias.Max(c => c.Id) : 0;
     public static int UltimoIdEmpleado => Empleados.Any() ? Empleados.Max(e => e.Id) : 0; 
     
     private static readonly string[] Cargos = {
@@ -362,5 +363,4 @@ public static class Almacenamiento
     "Vigilante"
     };
     
-    public static string ObtenerCargoAleatorio() => Cargos[new Random().Next(Cargos.Length)];
 }
