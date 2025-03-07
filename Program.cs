@@ -11,7 +11,29 @@ builder.Services.AddSwaggerGen(c => {
     });
 });
 
+builder.Services.AddCors(options =>
+{
+   
+    options.AddPolicy("PermitirTodo", policy =>
+    {
+        policy.AllowAnyOrigin()    
+              .AllowAnyMethod()    
+              .AllowAnyHeader();   
+    });
+
+
+    options.AddPolicy("PermitirMiDominio", policy =>
+    {
+        policy.WithOrigins("http://localhost:5240")  
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
+
+app.UseCors("PermitirTodo");
+app.UseCors("PermitirMiDominio");
 
 
 app.Use(async (context, next) => {
@@ -21,9 +43,10 @@ app.Use(async (context, next) => {
 });
 
 app.Use(async (context, next) => {
-   
+
+   context.Response.Headers.Append("X-Custom-Header", "Lo cambie y punto");
     await next();
-    context.Response.Headers.Append("Esto lo cambio porque me dio la gana", "Y punto");
+    
 });
 
 app.UseSwagger();
@@ -118,7 +141,14 @@ Almacenamiento.Empleados = new List<Empleado>
 
 //Para las companias
 app.MapGet("/api/companias", () => 
-    Results.Ok(Almacenamiento.Companias))
+{
+    app.Use(async (context, next) => {
+        Console.WriteLine("Middleware para la companias");
+        await next();
+    
+    });
+    return Results.Ok(Almacenamiento.Companias);
+})
 .WithTags("Compañías");
 
 
@@ -273,7 +303,13 @@ app.MapPost("/api/empleados/{id}/despedir", (int id) =>
 //Para obtener los empleados despedidos
 
 app.MapGet("/api/despidos", () => 
-    Results.Ok(Almacenamiento.EmpleadosDespedidos))
+{ app.Use(async (context, next) => {
+        Console.WriteLine("Middleware para los despidos");
+        await next();
+    
+    });
+    return Results.Ok(Almacenamiento.EmpleadosDespedidos);
+})
 .WithTags("Despidos");
 
 
