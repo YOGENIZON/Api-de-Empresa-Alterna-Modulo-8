@@ -7,17 +7,32 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c => {
     c.SwaggerDoc("v1", new OpenApiInfo {
         Title = "Como tu quieras que se llame",
-        Version = "v1",
-        Description = "Sistema para administrar los palomos de la empresa",
+        Description = "Sistema para administrar los palomos de la empresa"
     });
 });
 
 var app = builder.Build();
 
+
+app.Use(async (context, next) => {
+   Console.WriteLine($"Middleware 1: {context.Request.Method} {context.Request.Path}");
+    await next();
+    Console.WriteLine($"Middleware 1: {context.Response.StatusCode}");
+});
+
+app.Use(async (context, next) => {
+   
+    await next();
+    context.Response.Headers.Append("Esto lo cambio porque me dio la gana", "Y punto");
+});
+
 app.UseSwagger();
 app.UseSwaggerUI();
+    
 
-var Companias = new List<Compania>
+
+
+Almacenamiento.Companias = new List<Compania>
 {
     new Compania { 
         Id = 1, Nombre = "Tu papi Jhonson", FechaFundacion = new DateTime(2010, 1, 1) 
@@ -31,10 +46,13 @@ var Companias = new List<Compania>
     },
 };
 
-var empleados = new List<Empleado>
+Almacenamiento.Empleados = new List<Empleado>
 {
     new Empleado { 
-        Id = 1, Nombre = "Carlos", Edad = 20, 
+        Id = 1, 
+        Nombre = "Carlos", 
+        Cargo = "Lava plato",
+        Edad = 20, 
         CompaniaId = 1, 
         FechaContratacion = new DateTime(2020, 3, 10), 
         Salario = 30000m 
@@ -42,6 +60,7 @@ var empleados = new List<Empleado>
     new Empleado { 
         Id = 2, 
         Nombre = "Juan", 
+        Cargo = "Pela papas",
         Edad = 21, 
         CompaniaId = 1, 
         FechaContratacion = new DateTime(2019, 6, 20), 
@@ -50,6 +69,7 @@ var empleados = new List<Empleado>
     new Empleado { 
         Id = 3, 
         Nombre = "Pedro", 
+        Cargo = "Gerente",
         Edad = 22, 
         CompaniaId = 2, 
         FechaContratacion = new DateTime(2021, 1, 15), 
@@ -58,6 +78,7 @@ var empleados = new List<Empleado>
     new Empleado { 
         Id = 4, 
         Nombre = "María", 
+        Cargo = "Secretaria",
         Edad = 23, 
         CompaniaId = 2, 
         FechaContratacion = new DateTime(2018, 8, 5), 
@@ -66,6 +87,7 @@ var empleados = new List<Empleado>
     new Empleado { 
         Id = 5, 
         Nombre = "Luis", 
+        Cargo = "Vigilante",
         Edad = 24, 
         CompaniaId = 2, 
         FechaContratacion = new DateTime(2022, 2, 28), 
@@ -75,6 +97,7 @@ var empleados = new List<Empleado>
     new Empleado { 
         Id = 6, 
         Nombre = "Ana", 
+        Cargo = "Cajera",
         Edad = 25, 
         CompaniaId = 3, 
         FechaContratacion = new DateTime(2017, 4, 30), 
@@ -84,6 +107,7 @@ var empleados = new List<Empleado>
     new Empleado { 
         Id = 7, 
         Nombre = "Jose", 
+        Cargo = "Guaremate",
         Edad = 26, 
         CompaniaId = 3, 
         FechaContratacion = new DateTime(2016, 7, 25), 
@@ -110,7 +134,7 @@ app.MapGet("/api/companias/{id}", (int id) =>
 
 app.MapPost("/api/companias", (Compania Compania) => 
 {
-    Compania.Id = ++Almacenamiento.UltimoIdCompania;
+    Compania.Id = Almacenamiento.UltimoIdCompania + 1;
     Compania.FechaFundacion = DateTime.Now;
     Almacenamiento.Companias.Add(Compania);
     return Results.Created($"/api/companias/{Compania.Id}", Compania);
@@ -180,8 +204,12 @@ app.MapPost("/api/empleados", (Empleado empleado) =>
     if (!Almacenamiento.Companias.Any(c => c.Id == empleado.CompaniaId))
         return Results.NotFound("Compañía no encontrada");
     
-    empleado.Id = ++Almacenamiento.UltimoIdEmpleado;
+    empleado.Id = Almacenamiento.UltimoIdEmpleado + 1;
     empleado.FechaContratacion = DateTime.Now;
+if(string.IsNullOrWhiteSpace(empleado.Cargo)){
+    empleado.Cargo = Almacenamiento.ObtenerCargoAleatorio();
+}
+
     Almacenamiento.Empleados.Add(empleado);
     return Results.Created($"/api/empleados/{empleado.Id}", empleado);
 })
@@ -248,6 +276,7 @@ app.MapGet("/api/despidos", () =>
     Results.Ok(Almacenamiento.EmpleadosDespedidos))
 .WithTags("Despidos");
 
+
 app.Run();
 
 
@@ -285,9 +314,9 @@ public static class Almacenamiento
     public static List<Compania> Companias = new();
     public static List<Empleado> Empleados = new();
     public static List<EmpleadoDespedido> EmpleadosDespedidos = new();
-    
-    public static int UltimoIdCompania = 0;
-    public static int UltimoIdEmpleado = 0;
+
+   public static int UltimoIdCompania => Companias.Any() ? Companias.Max(c => c.Id) : 0;
+    public static int UltimoIdEmpleado => Empleados.Any() ? Empleados.Max(e => e.Id) : 0; 
     
     private static readonly string[] Cargos = {
     "Lava plato",

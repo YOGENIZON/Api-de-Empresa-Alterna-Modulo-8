@@ -31,3 +31,4 @@ C:\Users\yogen\Desktop\empresa2\Empresa01\obj\Debug\net8.0\refint\Empresa01.dll
 C:\Users\yogen\Desktop\empresa2\Empresa01\obj\Debug\net8.0\Empresa01.pdb
 C:\Users\yogen\Desktop\empresa2\Empresa01\obj\Debug\net8.0\Empresa01.genruntimeconfig.cache
 C:\Users\yogen\Desktop\empresa2\Empresa01\obj\Debug\net8.0\ref\Empresa01.dll
+C:\Users\yogen\Desktop\empresa2\Empresa01\obj\Debug\net8.0\Empresa01.sourcelink.json
