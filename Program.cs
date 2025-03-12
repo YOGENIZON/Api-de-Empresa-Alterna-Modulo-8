@@ -1,15 +1,50 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuración de Swagger
+var issuer = "TuIssuer";
+var audience = "TuAudience";
+var secretKey = "Clave-secreta-mi-demipropiedad-deYo-porque-no-es-tuya-y-no-la-vas-a-adivinar-weje-weje";
+
 builder.Services.AddEndpointsApiExplorer();
+// Configuración de Swagger
 builder.Services.AddSwaggerGen(c => {
     c.SwaggerDoc("v1", new OpenApiInfo {
         Title = "Como tu quieras que se llame",
+        Version = "v1",
         Description = "Sistema para administrar los palomos de las empresas"
     });
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Aqui debes poner el token JWT de la siguiente manera: Bearer {token}"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
 });
+});
+
 
 builder.Services.AddCors(options =>
 {
@@ -30,8 +65,32 @@ builder.Services.AddCors(options =>
     });
 });
 
+
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = issuer,
+        ValidAudience = audience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+    };
+});
+
+builder.Services.AddAuthorization();
+
+
 var app = builder.Build();
 
+app.UseSwagger();
+app.UseSwaggerUI();
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseCors("PermitirTodo");
 app.UseCors("PermitirMiDominio");
 
@@ -49,8 +108,8 @@ app.Use(async (context, next) => {
     
 });
 
-app.UseSwagger();
-app.UseSwaggerUI();
+
+
     
 
 
@@ -150,8 +209,8 @@ app.MapGet("/api/companias", () =>
     });
     return Results.Ok(Almacenamiento.Companias);
 })
-.WithTags("Compañías");
-
+.WithTags("Compañías")
+.RequireAuthorization();
 
 //Las companias por id
 
@@ -160,7 +219,8 @@ app.MapGet("/api/companias/{id}", (int id) =>
     var Compania = Almacenamiento.Companias.FirstOrDefault(c => c.Id == id);
     return Compania != null ? Results.Ok(Compania) : Results.NotFound();
 })
-.WithTags("Compañías");
+.WithTags("Compañías")
+.RequireAuthorization();
 
 //Para agregar una compania
 
@@ -171,7 +231,8 @@ app.MapPost("/api/companias", (Compania Compania) =>
     Almacenamiento.Companias.Add(Compania);
     return Results.Created($"/api/companias/{Compania.Id}", Compania);
 })
-.WithTags("Compañías");
+.WithTags("Compañías")
+.RequireAuthorization();
 
 
 //Para actualizar una compania
@@ -184,7 +245,8 @@ app.MapPut("/api/companias/{id}", (int id, Compania CompaniaActualizada) =>
     Compania.Nombre = CompaniaActualizada.Nombre;
     return Results.Ok(Compania);
 })
-.WithTags("Compañías");
+.WithTags("Compañías")
+.RequireAuthorization();
 
 //Para eliminar una compania pero si tiene empleados no se puede eliminar
 
@@ -199,7 +261,8 @@ app.MapDelete("/api/companias/{id}", (int id) =>
     Almacenamiento.Companias.Remove(Compania);
     return Results.NoContent();
 })
-.WithTags("Compañías");
+.WithTags("Compañías")
+.RequireAuthorization();
 
 //Ahora si se puede eliminar una compania con empleados
 
@@ -212,13 +275,15 @@ app.MapDelete("/api/companias/{id}/forzar", (int id) =>
     Almacenamiento.Companias.Remove(Compania);
     return Results.NoContent();
 })
-.WithTags("Compañías");
+.WithTags("Compañías")
+.RequireAuthorization();
 
 //Para obtener los empleados
 
 app.MapGet("/api/empleados", () => 
     Results.Ok(Almacenamiento.Empleados))
-.WithTags("Empleados");
+.WithTags("Empleados")
+.RequireAuthorization();
 
 //Para obtener los empleados por id
 
@@ -227,7 +292,8 @@ app.MapGet("/api/empleados/{id}", (int id) =>
     var empleado = Almacenamiento.Empleados.FirstOrDefault(e => e.Id == id);
     return empleado != null ? Results.Ok(empleado) : Results.NotFound();
 })
-.WithTags("Empleados");
+.WithTags("Empleados")
+.RequireAuthorization();
 
 //Para agregar un empleado
 
@@ -244,7 +310,8 @@ if(string.IsNullOrWhiteSpace(empleado.Cargo)){
     Almacenamiento.Empleados.Add(empleado);
     return Results.Created($"/api/empleados/{empleado.Id}", empleado);
 })
-.WithTags("Empleados");
+.WithTags("Empleados")
+.RequireAuthorization();
 
 //Para actualizar un empleado
 
@@ -258,7 +325,8 @@ app.MapPut("/api/empleados/{id}", (int id, Empleado empleadoActualizado) =>
     empleado.Salario = empleadoActualizado.Salario;
     return Results.Ok(empleado);
 })
-.WithTags("Empleados");
+.WithTags("Empleados")
+.RequireAuthorization();
 
 //Para eliminar un empleado
 
@@ -270,7 +338,8 @@ app.MapDelete("/api/empleados/{id}", (int id) =>
     Almacenamiento.Empleados.Remove(empleado);
     return Results.NoContent();
 })
-.WithTags("Empleados");
+.WithTags("Empleados")
+.RequireAuthorization();
 
 //Para despedir un empleado
 
@@ -299,8 +368,8 @@ app.MapPost("/api/empleados/{id}/despedir", (int id) =>
     Almacenamiento.Empleados.Remove(empleado);
     return Results.Ok(empleadoDespedido);
 })
-.WithTags("Despidos");
-
+.WithTags("Despidos")
+.RequireAuthorization();
 //Para obtener los empleados despedidos
 
 app.MapGet("/api/despidos", () => 
@@ -311,7 +380,8 @@ app.MapGet("/api/despidos", () =>
     });
     return Results.Ok(Almacenamiento.EmpleadosDespedidos);
 })
-.WithTags("Despidos");
+.WithTags("Despidos")
+.RequireAuthorization();
 
 
 app.Run();
